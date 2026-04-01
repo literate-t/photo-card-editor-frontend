@@ -21,9 +21,9 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   return (
     <div
       onMouseDown={onMouseDown}
-      className={`absolute border-2 ${isSelected ? "border-blue-500 cursor-grabbing" : "border-transparent cursor-grab"}`}
+      className={`absolute border-2 select-none ${isSelected ? "border-blue-500 cursor-grabbing" : "border-transparent cursor-grab"}`}
       style={{
-        transform: `traslate(${layer.x}px, ${layer.y}px)`,
+        transform: `translate(${layer.x}px, ${layer.y}px)`,
         width: layer.width,
         height: layer.height,
         zIndex: layer.zIndex,
@@ -37,7 +37,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
           className="w-full h-full pointer-events-none"
         />
       ) : (
-        <div className="w-full h-full pointer-events-none"></div>
+        <div className="w-full h-full pointer-events-none">{layer.content}</div>
       )}
     </div>
   );

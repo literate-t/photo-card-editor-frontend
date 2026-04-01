@@ -55,7 +55,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   updateLayer: (id, updatedLayer) =>
     set((state) => ({
       layers: state.layers.map((layer) =>
-        layer.id === id ? { ...layer, updatedLayer } : layer,
+        layer.id === id ? ({ ...layer, ...updatedLayer } as Layer) : layer,
       ),
     })),
   removeLayer: (id) =>

@@ -1,5 +1,6 @@
 import { useDrag } from "../hook/useDrag";
 import { useEditorStore } from "../store/useEditorStore";
+import BoundingBox from "./BoundingBox";
 
 interface LayerComponentProps {
   layerId: string;
@@ -39,6 +40,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
       ) : (
         <div className="w-full h-full pointer-events-none">{layer.content}</div>
       )}
+      {isSelected && <BoundingBox />}
     </div>
   );
 }

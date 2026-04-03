@@ -40,7 +40,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
       ) : (
         <div className="w-full h-full pointer-events-none">{layer.content}</div>
       )}
-      {isSelected && <BoundingBox />}
+      {isSelected && <BoundingBox layerId={layerId} />}
     </div>
   );
 }

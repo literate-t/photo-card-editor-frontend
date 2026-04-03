@@ -38,12 +38,11 @@ export const useDrag = (layerId: string) => {
     function handleMouseUp() {
       if (isDragging.current) {
         isDragging.current = false;
-        setSelectedLayer(null);
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", handleMouseUp);
       }
     },
-    [onMouseMove, setSelectedLayer],
+    [onMouseMove],
   );
 
   const onMouseDown = (e: React.MouseEvent) => {

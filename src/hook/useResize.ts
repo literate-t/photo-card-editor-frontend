@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import type { HandleDirection } from "../component/BoundingBox";
 import { useEditorStore } from "../store/useEditorStore";
 
@@ -33,6 +33,7 @@ export default function useResize(layerId: string) {
     (
       event: React.MouseEvent<HTMLDivElement, MouseEvent>,
       direction: HandleDirection,
+      cursor: string,
     ): void => {
       event.stopPropagation();
       if (!layer || resizeState.current.isResizing) {
@@ -49,82 +50,77 @@ export default function useResize(layerId: string) {
         startWidth: layer.width,
         startHeight: layer.height,
       };
-    },
-    [layer],
-  );
 
-  const onMouseMove = useCallback(
-    (event: MouseEvent): void => {
-      const state = resizeState.current;
-      if (!state.isResizing || !state.direction) {
-        return;
-      }
+      document.body.classList.add(cursor);
 
-      const direction = state.direction;
+      const onMouseMove = (event: MouseEvent): void => {
+        const state = resizeState.current;
+        if (!state.isResizing || !state.direction) {
+          return;
+        }
 
-      const dx = event.clientX - state.startX;
-      const dy = event.clientY - state.startY;
+        const direction = state.direction;
 
-      let newWidth = state.startWidth;
-      let newHeight = state.startHeight;
-      let newX = state.startLayerX;
-      let newY = state.startLayerY;
+        const dx = event.clientX - state.startX;
+        const dy = event.clientY - state.startY;
 
-      if (direction.includes("e")) {
-        newWidth = newWidth + dx;
-      }
-      if (direction.includes("w")) {
-        newWidth = newWidth - dx;
-        newX = newX + dx;
-      }
+        let newWidth = state.startWidth;
+        let newHeight = state.startHeight;
+        let newX = state.startLayerX;
+        let newY = state.startLayerY;
 
-      if (direction.includes("s")) {
-        newHeight = newHeight + dy;
-      }
-
-      if (direction.includes("n")) {
-        newHeight = newHeight - dy;
-        newY = newY + dy;
-      }
-
-      if (newWidth < MIN_SIZE) {
-        newWidth = MIN_SIZE;
+        if (direction.includes("e")) {
+          newWidth = newWidth + dx;
+        }
         if (direction.includes("w")) {
-          newX = state.startLayerX + state.startWidth - MIN_SIZE;
+          newWidth = newWidth - dx;
+          newX = newX + dx;
         }
-      }
 
-      if (newHeight < MIN_SIZE) {
-        newHeight = MIN_SIZE;
+        if (direction.includes("s")) {
+          newHeight = newHeight + dy;
+        }
+
         if (direction.includes("n")) {
-          newY = state.startLayerY + state.startHeight - MIN_SIZE;
+          newHeight = newHeight - dy;
+          newY = newY + dy;
         }
-      }
 
-      updateLayer(layerId, {
-        x: newX,
-        y: newY,
-        width: newWidth,
-        height: newHeight,
-      });
+        if (newWidth < MIN_SIZE) {
+          newWidth = MIN_SIZE;
+          if (direction.includes("w")) {
+            newX = state.startLayerX + state.startWidth - MIN_SIZE;
+          }
+        }
+
+        if (newHeight < MIN_SIZE) {
+          newHeight = MIN_SIZE;
+          if (direction.includes("n")) {
+            newY = state.startLayerY + state.startHeight - MIN_SIZE;
+          }
+        }
+
+        updateLayer(layerId, {
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight,
+        });
+      };
+
+      const onMouseUp = () => {
+        resizeState.current.isResizing = false;
+        resizeState.current.direction = null;
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+        document.body.classList.remove(cursor);
+      };
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
     },
-    [updateLayer, layerId],
+    [layer, updateLayer, layerId],
   );
-
-  const onMouseUp = useCallback(() => {
-    resizeState.current.isResizing = false;
-    resizeState.current.direction = null;
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [onMouseMove, onMouseUp]);
 
   return { onResizeStart };
 }

@@ -64,7 +64,7 @@ export default function BoundingBox({ layerId }: BoundingBoxProps) {
         <div
           key={handle.direction}
           className={`absolute w-2 h-2 bg-white border-2 border-blue-500 rounded-full ${handle.positionClass} ${handle.cursor}`}
-          onMouseDown={(e) => onResizeStart(e, handle.direction)}
+          onMouseDown={(e) => onResizeStart(e, handle.direction, handle.cursor)}
         />
       ))}
 

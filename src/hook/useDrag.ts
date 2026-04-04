@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { useEditorStore } from "../store/useEditorStore";
 
 export const useDrag = (layerId: string) => {
@@ -9,59 +9,49 @@ export const useDrag = (layerId: string) => {
   const isDragging = useRef<boolean>(false);
   const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const onMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging.current) {
-        return;
-      }
+  const onDragStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSelectedLayer(layerId);
 
-      const deltaX = e.clientX - lastPosition.current.x;
-      const deltaY = e.clientY - lastPosition.current.y;
-
-      const { layers } = useEditorStore.getState();
-      const targetLayer = layers.find((l) => l.id === layerId);
-
-      if (targetLayer) {
-        updateLayer(layerId, {
-          x: targetLayer.x + deltaX,
-          y: targetLayer.y + deltaY,
-        });
-      }
-
+      isDragging.current = true;
       lastPosition.current = { x: e.clientX, y: e.clientY };
+
+      const onMouseMove = (e: MouseEvent) => {
+        if (!isDragging.current) {
+          return;
+        }
+
+        const deltaX = e.clientX - lastPosition.current.x;
+        const deltaY = e.clientY - lastPosition.current.y;
+
+        const { layers } = useEditorStore.getState();
+        const targetLayer = layers.find((l) => l.id === layerId);
+
+        if (targetLayer) {
+          updateLayer(layerId, {
+            x: targetLayer.x + deltaX,
+            y: targetLayer.y + deltaY,
+          });
+        }
+
+        lastPosition.current = { x: e.clientX, y: e.clientY };
+      };
+
+      // 드래그 종료
+      const onMouseUp = function handleMouseUp() {
+        if (isDragging.current) {
+          isDragging.current = false;
+          window.removeEventListener("mousemove", onMouseMove);
+          window.removeEventListener("mouseup", handleMouseUp);
+        }
+      };
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
     },
-    [layerId, updateLayer],
+    [setSelectedLayer, layerId, updateLayer],
   );
 
-  // 드래그 종료
-  const onMouseUp = useCallback(
-    function handleMouseUp() {
-      if (isDragging.current) {
-        isDragging.current = false;
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-      }
-    },
-    [onMouseMove],
-  );
-
-  const onMouseDown = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedLayer(layerId);
-
-    isDragging.current = true;
-    lastPosition.current = { x: e.clientX, y: e.clientY };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  };
-
-  useEffect(() => {
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [onMouseMove, onMouseUp]);
-
-  return { onMouseDown };
+  return { onDragStart };
 };

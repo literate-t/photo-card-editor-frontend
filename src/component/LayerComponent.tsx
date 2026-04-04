@@ -11,7 +11,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
     state.layers.find((l) => l.id === layerId),
   );
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId);
-  const { onMouseDown } = useDrag(layerId);
+  const { onDragStart } = useDrag(layerId);
 
   if (!layer) {
     return null;
@@ -21,7 +21,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
 
   return (
     <div
-      onMouseDown={onMouseDown}
+      onMouseDown={onDragStart}
       className={`absolute border-2 select-none ${isSelected ? "border-blue-500 cursor-grabbing" : "border-transparent cursor-grab"}`}
       style={{
         transform: `translate(${layer.x}px, ${layer.y}px) rotate(${layer.rotation || 0}deg)`,

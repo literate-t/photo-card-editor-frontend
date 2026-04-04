@@ -1,4 +1,5 @@
 import useResize from "../hook/useResize";
+import useRotation from "../hook/useRotation";
 
 export type HandleDirection = "nw" | "n" | "ne" | "w" | "e" | "sw" | "s" | "se";
 interface BoundingBoxProps {
@@ -7,6 +8,7 @@ interface BoundingBoxProps {
 export default function BoundingBox({ layerId }: BoundingBoxProps) {
   // 리사이즈 훅
   const { onResizeStart } = useResize(layerId);
+  const { onRotateStart } = useRotation(layerId);
 
   const handles: {
     direction: HandleDirection;
@@ -68,8 +70,8 @@ export default function BoundingBox({ layerId }: BoundingBoxProps) {
 
       {/* 3. 회전(Rotate) 조절점 및 연결 선 렌더링 */}
       <div
-        className="absolute w-2 h-2 bg-white border-2 border-green-500 rounded-full cursor-crosshair -top-11.25 left-1/2 -translate-x-1/2"
-        // 향후 onMouseDown={onRotateStart} 가 연결될 위치입니다.
+        className="absolute w-2 h-2 bg-white border-2 border-green-500 rounded-full cursor-rotate -top-11.25 left-1/2 -translate-x-1/2"
+        onMouseDown={onRotateStart}
       />
       {/* 회전 조절점이 요소와 연결되어 있음을 보여주는 시각적 가이드라인 */}
       <div className="absolute w-0.5 h-8 bg-green-500 -top-9.25 left-1/2 -translate-x-1/2 pointer-events-none" />

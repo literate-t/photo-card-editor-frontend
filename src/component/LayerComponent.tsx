@@ -24,10 +24,11 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
       onMouseDown={onMouseDown}
       className={`absolute border-2 select-none ${isSelected ? "border-blue-500 cursor-grabbing" : "border-transparent cursor-grab"}`}
       style={{
-        transform: `translate(${layer.x}px, ${layer.y}px)`,
+        transform: `translate(${layer.x}px, ${layer.y}px) rotate(${layer.rotation || 0}deg)`,
         width: layer.width,
         height: layer.height,
         zIndex: layer.zIndex,
+        // transform-origin은 기본값인 50% 50%가 적용되므로 요소의 중심을 축으로 회전
       }}
     >
       {/* 포인터 이벤트를 제거해 최상위 div가 받는다 */}

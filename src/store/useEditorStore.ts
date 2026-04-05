@@ -16,7 +16,9 @@ export interface TextLayer extends BaseLayer {
   content: string;
   fontSize: string;
   color: string;
-  fontWeight: string;
+  fontFamily?: string;
+  fontWeight?: string;
+  textAlign?: "left" | "center" | "right";
 }
 
 export interface ImageLayer extends BaseLayer {

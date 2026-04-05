@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { HandleDirection } from "../component/BoundingBox";
-import { useEditorStore } from "../store/useEditorStore";
+import { useEditorStore, type TextLayer } from "../store/useEditorStore";
 
 export default function useResize(layerId: string) {
   const updateLayer = useEditorStore((state) => state.updateLayer);
@@ -66,13 +66,65 @@ export default function useResize(layerId: string) {
         if (direction.includes("s")) deltaHeight = localDy;
         if (direction.includes("n")) deltaHeight = -localDy;
 
-        // 최소 크기보다 작아질 수 없음
-        const newWidth = Math.max(10, startWidth + deltaWidth);
-        const newHeight = Math.max(10, startHeight + deltaHeight);
+        // 임시 크기
+        const tempWidth = Math.max(10, startWidth + deltaWidth);
+        const tempHeight = Math.max(10, startHeight + deltaHeight);
+
+        // 최종 적용
+        let finalWidth = tempWidth;
+        let finalHeight = tempHeight;
+        let finalFontSize: string | undefined = undefined;
+        let autoHeightDelta = 0;
+
+        if (layer.type === "text") {
+          const isHorizontal = direction === "e" || direction === "w";
+          const isDiagonal = direction.length === 2;
+          const startFontSizeNumber =
+            parseFloat(String(layer.fontSize).replace(/[^0-9.]/g, "")) || 16;
+
+          if (isDiagonal) {
+            // 대각선 핸들은 완벽한 비례 스케일링
+            const scaleRatio = finalWidth / startWidth;
+            finalHeight = startHeight * scaleRatio;
+            finalFontSize = `${startFontSizeNumber * scaleRatio}px`;
+          } else if (isHorizontal) {
+            // 좌우 핸들: 폰트 고정, 너비 조절, 높이는 랩핑에 맞춰
+            finalFontSize = `${startFontSizeNumber}px`;
+
+            // DOM에 직접 접근해 텍스트 실제 높이 구하기
+            const textEl = document.getElementById(`text-${layer.id}`);
+            if (textEl) {
+              // DOM에 접근해서 읽기 값만 구할 것이기 때문에 마지막에 되돌려놓는다
+              // 제어권은 React에게
+              const originalWidth = textEl.style.width;
+              const originalHeight = textEl.style.height;
+
+              // 랩핑이 적용됐을 때의 높이를 미리 계산하기 위함
+              textEl.style.width = `${finalWidth}px`;
+              textEl.style.height = "auto";
+
+              // 랩핑이 반영된 높이 구하기
+              finalHeight = Math.max(10, textEl.scrollHeight);
+              autoHeightDelta = finalHeight - startHeight;
+
+              textEl.style.width = originalWidth;
+              textEl.style.height = originalHeight;
+            }
+          } else {
+            finalWidth = startWidth;
+            finalFontSize = `${startFontSizeNumber}px`;
+
+            const textEl = document.getElementById(`text-${layer.id}`);
+            if (textEl) {
+              const minTextHeight = textEl.scrollHeight;
+              finalHeight = Math.max(minTextHeight, tempHeight);
+            }
+          }
+        }
 
         // 최소 크기 제한 때문에 날아간, 실제 델타값 다시 구하기
-        const actualWidthDelta = newWidth - startWidth;
-        const actualHeightDelta = newHeight - startHeight;
+        const actualWidthDelta = finalWidth - startWidth;
+        const actualHeightDelta = finalHeight - startHeight;
 
         // 로컬 중심점 이동량 구하기
         let localCxDelta = 0;
@@ -80,8 +132,10 @@ export default function useResize(layerId: string) {
 
         if (direction.includes("e")) localCxDelta = actualWidthDelta / 2;
         if (direction.includes("w")) localCxDelta = -actualWidthDelta / 2;
+
         if (direction.includes("s")) localCyDelta = actualHeightDelta / 2;
-        if (direction.includes("n")) localCyDelta = -actualHeightDelta / 2;
+        else if (direction.includes("n")) localCyDelta = -actualHeightDelta / 2;
+        else if (autoHeightDelta !== 0) localCyDelta = autoHeightDelta / 2;
 
         // 정방향 행렬로 로컬 중심점 델타를 글로벌 중심점 델타로변경
         const globalCxDelta = cos * localCxDelta - sin * localCyDelta;
@@ -92,17 +146,21 @@ export default function useResize(layerId: string) {
         const newCy = startCy + globalCyDelta;
 
         // 최종 좌상단 좌표
-        const newX = newCx - newWidth / 2;
-        const newY = newCy - newHeight / 2;
-        console.log("newX", newX);
-        console.log("newY", newY);
+        const newX = newCx - finalWidth / 2;
+        const newY = newCy - finalHeight / 2;
 
-        updateLayer(layerId, {
+        const updatePayload: Partial<typeof layer> = {
           x: newX,
           y: newY,
-          width: newWidth,
-          height: newHeight,
-        });
+          width: finalWidth,
+          height: finalHeight,
+        };
+
+        if (layer.type === "text" && finalFontSize) {
+          (updatePayload as TextLayer).fontSize = finalFontSize;
+        }
+
+        updateLayer(layerId, updatePayload);
       };
 
       const onMouseUp = () => {

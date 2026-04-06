@@ -1,7 +1,7 @@
 import cn from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { useDrag } from "../hook/useDrag";
-import { useEditorStore } from "../store/useEditorStore";
+import { useEditorStore, type BlendMode } from "../store/useEditorStore";
 import BoundingBox from "./BoundingBox";
 
 interface LayerComponentProps {
@@ -36,6 +36,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
 
   const isSelected = selectedLayerId === layerId;
   const isTextLayer = layer.type === "text";
+  const isImageLayer = layer.type === "image";
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     if (!isTextLayer) {
@@ -63,6 +64,8 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
     }
   };
 
+  const currentBlendMode: BlendMode = isImageLayer ? layer.blendMode : "normal";
+
   return (
     <div
       onMouseDown={(e) => {
@@ -83,6 +86,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
         width: layer.width,
         height: layer.height,
         zIndex: layer.zIndex,
+        mixBlendMode: currentBlendMode as never,
         // transform-origin은 기본값인 50% 50%가 적용되므로 요소의 중심을 축으로 회전
       }}
     >

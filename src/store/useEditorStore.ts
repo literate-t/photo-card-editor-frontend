@@ -21,10 +21,18 @@ export interface TextLayer extends BaseLayer {
   textAlign?: "left" | "center" | "right";
 }
 
+export type BlendMode =
+  | "normal"
+  | "multiply"
+  | "darken"
+  | "hard-light"
+  | "difference"
+  | "exclusion";
+
 export interface ImageLayer extends BaseLayer {
   type: "image";
   src: string;
-  blendMode: string;
+  blendMode: BlendMode;
   maskType: "none" | "circle" | "heart";
 }
 

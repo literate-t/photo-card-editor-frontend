@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createStore } from "./store";
 
 export interface BaseLayer {
   id: string;
@@ -45,7 +45,7 @@ interface EditorState {
 }
 
 // Zustand store
-export const useEditorStore = create<EditorState>((set) => ({
+export const useEditorStore = createStore<EditorState>((set) => ({
   // Initial state
   cardId: null,
   cardBackgroundColor: "#fffff",

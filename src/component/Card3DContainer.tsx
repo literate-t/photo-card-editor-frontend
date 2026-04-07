@@ -20,14 +20,51 @@ export default function Card3DContainer({
   });
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
-  const THICKNESS = 4; // 단위: px
+  const THICKNESS = 8; // 단위: px
   const HALF_THICKNESS = THICKNESS / 2;
+  const MAX_ROTATION_DEGREE = 30;
 
-  // TODO: 틸트 물리 엔진
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>): void => {
+    if (!containerRef.current) {
+      return;
+    }
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // 중심점 기준의 offset 만들기
+    const deltaX = e.clientX - centerX;
+    const deltaY = e.clientY - centerY;
+
+    // 중심점을 기준으로 떨어질 거리를 -1.0 ~ 1.0으로 정규화
+    const ratioX = deltaX / (rect.width / 2);
+    const ratioY = deltaY / (rect.height / 2);
+
+    // 마우스롤 좌우로 왔다갔다 하면 Y축 회전
+    const rotateY = ratioX * MAX_ROTATION_DEGREE;
+    // 마우스롤 위아래로 왔다갔다 하면 X축 회전
+    const rotateX = ratioY * MAX_ROTATION_DEGREE * -1; // -1을 곱해야 정상적인 방향이 나온다
+
+    setRotation({ x: rotateX, y: rotateY });
+  };
+
+  const handleMouseEnter = () => {
+    // 순간 이동 틸팅되는 걸 방지
+    setTimeout(() => setIsHovered(true), 150);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setRotation({ x: 0, y: 0 });
+  };
 
   return (
     <div
       ref={containerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{
         width: `${width}px`,
         height: `${height}px`,
@@ -41,7 +78,7 @@ export default function Card3DContainer({
         })}
         style={{
           transformStyle: "preserve-3d",
-          transform: `rotateY(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
         }}
       >
         {/* 앞면: 앞으로 2px 밀어내기 */}
@@ -62,7 +99,7 @@ export default function Card3DContainer({
         />
         {/* 위쪽 측면 */}
         <div
-          className="absolute top-0 left-0 bg-gray-300 origin-top"
+          className="absolute top-0 left-0 origin-top bg-gray-300 "
           style={{
             width: "100%",
             height: `${THICKNESS}px`,
@@ -70,8 +107,32 @@ export default function Card3DContainer({
           }}
         />
         {/* 아래쪽 측면 */}
+        <div
+          className="absolute bottom-0 left-0 origin-bottom bg-gray-500"
+          style={{
+            width: "100%",
+            height: `${THICKNESS}px`,
+            transform: `rotateX(-90deg) translateY(${HALF_THICKNESS}px)`,
+          }}
+        />
         {/* 왼쪽 측면 */}
+        <div
+          className="absolute top-0 left-0 origin-left bg-gray-300"
+          style={{
+            width: `${THICKNESS}px`,
+            height: "100%",
+            transform: `rotateY(-90deg) translateX(-${HALF_THICKNESS}px)`,
+          }}
+        />
         {/* 오른쪽 측면 */}
+        <div
+          className="absolute top-0 right-0 origin-right bg-gray-500"
+          style={{
+            width: `${THICKNESS}px`,
+            height: "100%",
+            transform: `rotateY(90deg) translateX(${HALF_THICKNESS}px)`,
+          }}
+        />
       </div>
     </div>
   );

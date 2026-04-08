@@ -18,11 +18,12 @@ export default function Card3DContainer({
     x: 0,
     y: 0,
   });
+  const [glare, setGlare] = useState({ angle: 0, opacity: 0 });
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
   const THICKNESS = 8; // 단위: px
   const HALF_THICKNESS = THICKNESS / 2;
-  const MAX_ROTATION_DEGREE = 30;
+  const MAX_ROTATION_DEGREE = 20;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>): void => {
     if (!containerRef.current) {
@@ -41,12 +42,22 @@ export default function Card3DContainer({
     const ratioX = deltaX / (rect.width / 2);
     const ratioY = deltaY / (rect.height / 2);
 
+    // 틸트 회전
     // 마우스롤 좌우로 왔다갔다 하면 Y축 회전
     const rotateY = ratioX * MAX_ROTATION_DEGREE;
     // 마우스롤 위아래로 왔다갔다 하면 X축 회전
     const rotateX = ratioY * MAX_ROTATION_DEGREE * -1; // -1을 곱해야 정상적인 방향이 나온다
 
+    // 광택
+    // Math.atan2를 통해 마우스 방향을 향하는 각도
+    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 90; // to degree
+    // 정규화된 값으로 거리 구하기(최대 1.414)
+    const distance = Math.sqrt(ratioX * ratioX + ratioY * ratioY);
+    // 거리에 따른 투명도 변화
+    const opacity = Math.min(0.5, distance * 0.5);
+
     setRotation({ x: rotateX, y: rotateY });
+    setGlare({ angle, opacity });
   };
 
   const handleMouseEnter = () => {
@@ -57,6 +68,7 @@ export default function Card3DContainer({
   const handleMouseLeave = () => {
     setIsHovered(false);
     setRotation({ x: 0, y: 0 });
+    setGlare({ angle: 0, opacity: 0 });
   };
 
   return (
@@ -89,6 +101,19 @@ export default function Card3DContainer({
           }}
         >
           {children}
+          <div
+            className={cn(
+              "absolute inset-0 pointer-events-none mix-blend-overlay",
+              {
+                "transition-opacity duration-200 ease-out": !isHovered,
+              },
+            )}
+            style={{
+              backgroundImage: `linear-gradient(${glare.angle}deg, rgba(255, 255, 255, ${glare.opacity}), rgba(255, 255, 255, 0) 80%)`,
+              transform: "translateZ(0)",
+              willChange: "opacity, background-image",
+            }}
+          />
         </div>
         {/* 뒷면: 뒤집어서 뒤로 2px 밀어내기 */}
         <div

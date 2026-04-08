@@ -1,60 +1,46 @@
-import { useRef } from "react";
-import { useEditorStore, type Layer } from "../store/useEditorStore";
+import { useEditorStore } from "../store/useEditorStore";
+import Card3DContainer from "./Card3DContainer";
 import LayerComponent from "./LayerComponent";
 
 export default function EditorCanvas() {
   const layers = useEditorStore((state) => state.layers);
-  const setSelectedLayer = useEditorStore((state) => state.setSelectedLayer);
-  const addLayer = useEditorStore((state) => state.addLayer);
-  const idRef = useRef<number>(0);
+  const clearSelection = useEditorStore((state) => state.clearSelection);
+  const isPreview = useEditorStore((state) => state.isPreview);
+  const togglePreview = useEditorStore((state) => state.togglePreview);
+  // const addLayer = useEditorStore((state) => state.addLayer);
+  // const idRef = useRef<number>(0);
+
+  const handleBackgroundClick = () => {
+    if (!isPreview) {
+      clearSelection();
+    }
+  };
 
   return (
-    <>
-      <button
-        className="bg-yellow-200"
-        onClick={() => {
-          const newLayer: Layer = {
-            id: `id_${idRef.current++}`,
-            content: "LAYER",
-            type: "text",
-            width: 100,
-            height: 100,
-            x: 30,
-            y: 30,
-          };
-
-          addLayer(newLayer);
-        }}
-      >
-        Add Text layer
-      </button>
-      <button
-        className="bg-blue-200"
-        onClick={() => {
-          const newLayer: Layer = {
-            id: `id_${idRef.current++}`,
-            type: "image",
-            src: "https://picsum.photos/400/400",
-            blendMode: "multiply",
-            width: 400,
-            height: 400,
-            x: 100,
-            y: 100,
-          };
-
-          addLayer(newLayer);
-        }}
-      >
-        Add Image layer
-      </button>
-      <div
-        className="relative w-full h-full bg-white overflow-hidden"
-        onMouseDown={() => setSelectedLayer(null)}
-      >
-        {layers.map((layer) => (
-          <LayerComponent key={layer.id} layerId={layer.id} />
-        ))}
+    <div
+      className="flex flex-col items-center justify-center w-full h-screen bg-gray-100"
+      onMouseDown={handleBackgroundClick}
+    >
+      {/* 컨트롤 패널 */}
+      <div className="mb-6 space-x-4">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            togglePreview();
+          }}
+          className="px-4 py-2 font-semibold text-white bg-indigo-600 rounded shadow hover:bg-indigo-700"
+        >
+          {isPreview ? "편집모드로 돌아가기" : "미리보기"}
+        </button>
       </div>
-    </>
+      {/* 3D 캔버스 영역 */}
+      <Card3DContainer width={400} height={600}>
+        <div className="relative w-full h-full bg-white overflow-hidden">
+          {layers.map((layer) => (
+            <LayerComponent key={layer.id} layerId={layer.id} />
+          ))}
+        </div>
+      </Card3DContainer>
+    </div>
   );
 }

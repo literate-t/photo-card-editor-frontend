@@ -44,12 +44,15 @@ interface EditorState {
   cardBackgroundImage: string | null;
   layers: Layer[];
   selectedLayerId: string | null;
+  isPreview: boolean;
 
   // actions
   addLayer: (layer: Layer) => void;
   updateLayer: (id: string, updatedLayer: Partial<Layer>) => void;
   removeLayer: (id: string) => void;
   setSelectedLayer: (id: string | null) => void;
+  togglePreview: () => void;
+  clearSelection: () => void;
 }
 
 // Zustand store
@@ -60,6 +63,7 @@ export const useEditorStore = createStore<EditorState>((set) => ({
   cardBackgroundImage: null,
   layers: [],
   selectedLayerId: null,
+  isPreview: false,
 
   addLayer: (layer) => set((state) => ({ layers: [...state.layers, layer] })),
   updateLayer: (id, updatedLayer) =>
@@ -75,4 +79,10 @@ export const useEditorStore = createStore<EditorState>((set) => ({
         state.selectedLayerId === id ? null : state.selectedLayerId,
     })),
   setSelectedLayer: (id) => set(() => ({ selectedLayerId: id })),
+  togglePreview: () =>
+    set((state) => ({
+      isPreview: !state.isPreview,
+      selectedLayerId: null,
+    })),
+  clearSelection: () => set({ selectedLayerId: null }),
 }));

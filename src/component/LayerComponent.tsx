@@ -14,6 +14,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   );
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId);
   const updateLayer = useEditorStore((state) => state.updateLayer);
+  const isPreview = useEditorStore((state) => state.isPreview);
   const { onDragStart } = useDrag(layerId);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
@@ -39,7 +40,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   const isImageLayer = layer.type === "image";
 
   const handleDoubleClick = (e: React.MouseEvent) => {
-    if (!isTextLayer) {
+    if (!isTextLayer || isPreview) {
       return;
     }
 
@@ -69,6 +70,9 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   return (
     <div
       onMouseDown={(e) => {
+        if (isPreview) {
+          return;
+        }
         if (isEditing) {
           e.stopPropagation();
         } else {

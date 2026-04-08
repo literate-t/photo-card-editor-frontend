@@ -1,5 +1,6 @@
 import cn from "classnames";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import useRafHandler from "../hook/useRafHandler";
 
 interface Card3DContainerProps {
   children: React.ReactNode;
@@ -25,40 +26,45 @@ export default function Card3DContainer({
   const HALF_THICKNESS = THICKNESS / 2;
   const MAX_ROTATION_DEGREE = 20;
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>): void => {
-    if (!containerRef.current) {
-      return;
-    }
+  const updateMouseEffect = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>): void => {
+      if (!containerRef.current) {
+        return;
+      }
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-    // 중심점 기준의 offset 만들기
-    const deltaX = e.clientX - centerX;
-    const deltaY = e.clientY - centerY;
+      // 중심점 기준의 offset 만들기
+      const deltaX = e.clientX - centerX;
+      const deltaY = e.clientY - centerY;
 
-    // 중심점을 기준으로 떨어질 거리를 -1.0 ~ 1.0으로 정규화
-    const ratioX = deltaX / (rect.width / 2);
-    const ratioY = deltaY / (rect.height / 2);
+      // 중심점을 기준으로 떨어질 거리를 -1.0 ~ 1.0으로 정규화
+      const ratioX = deltaX / (rect.width / 2);
+      const ratioY = deltaY / (rect.height / 2);
 
-    // 틸트 회전
-    // 마우스롤 좌우로 왔다갔다 하면 Y축 회전
-    const rotateY = ratioX * MAX_ROTATION_DEGREE;
-    // 마우스롤 위아래로 왔다갔다 하면 X축 회전
-    const rotateX = ratioY * MAX_ROTATION_DEGREE * -1; // -1을 곱해야 정상적인 방향이 나온다
+      // 틸트 회전
+      // 마우스롤 좌우로 왔다갔다 하면 Y축 회전
+      const rotateY = ratioX * MAX_ROTATION_DEGREE;
+      // 마우스롤 위아래로 왔다갔다 하면 X축 회전
+      const rotateX = ratioY * MAX_ROTATION_DEGREE * -1; // -1을 곱해야 정상적인 방향이 나온다
 
-    // 광택
-    // Math.atan2를 통해 마우스 방향을 향하는 각도
-    const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 90; // to degree
-    // 정규화된 값으로 거리 구하기(최대 1.414)
-    const distance = Math.sqrt(ratioX * ratioX + ratioY * ratioY);
-    // 거리에 따른 투명도 변화
-    const opacity = Math.min(0.5, distance * 0.5);
+      // 광택
+      // Math.atan2를 통해 마우스 방향을 향하는 각도
+      const angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI) - 90; // to degree
+      // 정규화된 값으로 거리 구하기(최대 1.414)
+      const distance = Math.sqrt(ratioX * ratioX + ratioY * ratioY);
+      // 거리에 따른 투명도 변화
+      const opacity = Math.min(0.5, distance * 0.5);
 
-    setRotation({ x: rotateX, y: rotateY });
-    setGlare({ angle, opacity });
-  };
+      setRotation({ x: rotateX, y: rotateY });
+      setGlare({ angle, opacity });
+    },
+    [],
+  );
+
+  const handleMouseMove = useRafHandler(updateMouseEffect);
 
   const handleMouseEnter = () => {
     // 순간 이동 틸팅되는 걸 방지

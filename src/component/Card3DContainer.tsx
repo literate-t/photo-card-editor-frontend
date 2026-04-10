@@ -109,7 +109,7 @@ export default function Card3DContainer({
           {children}
           <div
             className={cn(
-              "absolute inset-0 pointer-events-none mix-blend-overlay",
+              "absolute inset-0 pointer-events-none mix-blend-overlay z-999",
               {
                 "transition-opacity duration-200 ease-out": !isHovered,
               },

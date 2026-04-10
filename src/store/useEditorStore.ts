@@ -33,7 +33,7 @@ export interface ImageLayer extends BaseLayer {
   type: "image";
   src: string;
   blendMode: BlendMode;
-  maskType: "none" | "circle" | "heart";
+  maskType?: "none" | "circle" | "heart";
 }
 
 export type Layer = TextLayer | ImageLayer;

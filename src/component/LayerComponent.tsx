@@ -1,7 +1,11 @@
 import cn from "classnames";
 import { useEffect, useRef, useState } from "react";
 import { useDrag } from "../hook/useDrag";
-import { useEditorStore, type BlendMode } from "../store/useEditorStore";
+import {
+  useEditorStore,
+  type BlendMode,
+  type ImageLayer,
+} from "../store/useEditorStore";
 import BoundingBox from "./BoundingBox";
 
 interface LayerComponentProps {
@@ -29,7 +33,16 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
       selection?.removeAllRanges();
       selection?.addRange(range);
     }
-  }, [isEditing]);
+
+    return () => {
+      if (layer?.type === "image") {
+        const imageLayer = layer as ImageLayer;
+        if (imageLayer.src.startsWith("blob")) {
+          URL.revokeObjectURL(imageLayer.src);
+        }
+      }
+    };
+  }, [isEditing, layer]);
 
   if (!layer) {
     return null;

@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase";
 import { createStore } from "./store";
 
 export interface BaseLayer {
@@ -45,6 +46,7 @@ interface EditorState {
   layers: Layer[];
   selectedLayerId: string | null;
   isPreview: boolean;
+  isSaving: boolean;
 
   // actions
   addLayer: (layer: Layer) => void;
@@ -53,10 +55,11 @@ interface EditorState {
   setSelectedLayer: (id: string | null) => void;
   togglePreview: () => void;
   clearSelection: () => void;
+  saveCard: () => Promise<string | null>;
 }
 
 // Zustand store
-export const useEditorStore = createStore<EditorState>((set) => ({
+export const useEditorStore = createStore<EditorState>((set, get) => ({
   // Initial state
   cardId: null,
   cardBackgroundColor: "#fffff",
@@ -64,6 +67,7 @@ export const useEditorStore = createStore<EditorState>((set) => ({
   layers: [],
   selectedLayerId: null,
   isPreview: false,
+  isSaving: false,
 
   addLayer: (layer) => set((state) => ({ layers: [...state.layers, layer] })),
   updateLayer: (id, updatedLayer) =>
@@ -85,4 +89,80 @@ export const useEditorStore = createStore<EditorState>((set) => ({
       selectedLayerId: null,
     })),
   clearSelection: () => set({ selectedLayerId: null }),
+  saveCard: async (): Promise<string | null> => {
+    const { layers } = get();
+    if (layers.length === 0) {
+      return null;
+    }
+
+    set({ isSaving: true });
+
+    try {
+      const processedLayers = await Promise.all(
+        layers.map(async (layer) => {
+          if (layer.type !== "image" || !layer.src?.startsWith("blob:")) {
+            return layer;
+          }
+
+          try {
+            // blob url에서 실제 blob 데이터 추출
+            const response = await fetch(layer.src);
+            const imageBlob = await response.blob();
+
+            // 임시 UUID
+            const fileName = `${crypto.randomUUID()}.png`;
+            const filePath = `images/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from("cards")
+              .upload(filePath, imageBlob, {
+                contentType: "image/jpeg",
+              });
+            if (uploadError) {
+              throw uploadError;
+            }
+
+            // 업로드된 파일의 공개 url 가져오기
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from("cards").getPublicUrl(filePath);
+
+            URL.revokeObjectURL(layer.src);
+
+            return { ...layer, src: publicUrl };
+          } catch (error) {
+            console.error(`이미지 업로드 실패 (Layer ID: ${layer.id}):`, error);
+            return layer;
+          }
+        }),
+      );
+
+      // 공개 url이 적용된 데이터를 json으로 직렬화
+      const payload = JSON.stringify({ layers: processedLayers });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/cards`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: payload,
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`${response.status}`);
+      }
+
+      const responseData = await response.json();
+
+      return responseData.uuid;
+    } catch (error) {
+      console.error("카드 저장 프로세스 중 오류 발생:", error);
+      return null;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
 }));

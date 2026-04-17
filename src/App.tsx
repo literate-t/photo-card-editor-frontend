@@ -1,11 +1,16 @@
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
 import EditorCanvas from "./component/EditorCanvas";
+import CardPage from "./page/CardPage";
 
 function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <EditorCanvas />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<EditorCanvas />} />
+        <Route path="/card/:uuid" element={<CardPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

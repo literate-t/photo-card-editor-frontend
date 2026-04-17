@@ -47,6 +47,8 @@ interface EditorState {
   selectedLayerId: string | null;
   isPreview: boolean;
   isSaving: boolean;
+  isLoading: boolean;
+  isError: boolean;
 
   // actions
   addLayer: (layer: Layer) => void;
@@ -56,6 +58,7 @@ interface EditorState {
   togglePreview: () => void;
   clearSelection: () => void;
   saveCard: () => Promise<string | null>;
+  loadCard: (uuid: string) => Promise<void>;
 }
 
 // Zustand store
@@ -68,6 +71,8 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
   selectedLayerId: null,
   isPreview: false,
   isSaving: false,
+  isLoading: false,
+  isError: false,
 
   addLayer: (layer) => set((state) => ({ layers: [...state.layers, layer] })),
   updateLayer: (id, updatedLayer) =>
@@ -163,6 +168,35 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
       return null;
     } finally {
       set({ isSaving: false });
+    }
+  },
+  loadCard: async (uuid: string) => {
+    set({ isLoading: true, isError: false });
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/card/${uuid}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("카드 정보를 찾을 수 없습니다");
+      }
+
+      const data = await response.json();
+
+      // 편집이 불가능하도록 설정
+      set({
+        layers: data.layers,
+        isPreview: true,
+        selectedLayerId: null,
+      });
+    } catch (error) {
+      console.error("데이터 패칭 실패:", error);
+      set({ isError: true });
+    } finally {
+      set({
+        isLoading: false,
+      });
     }
   },
 }));

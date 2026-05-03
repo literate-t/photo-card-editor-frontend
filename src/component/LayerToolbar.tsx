@@ -17,7 +17,7 @@ export default function LayerToolbar() {
       height: 100,
       rotation: 0,
       zIndex: layers.length + 1,
-      content: "Layer Text",
+      content: "<div>Layer Text</div>",
       color: "#000000",
       fontWeight: "normal",
       fontSize: "16px",
@@ -27,6 +27,7 @@ export default function LayerToolbar() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (!file) {
+      console.log("NO IMAGE");
       return;
     }
 

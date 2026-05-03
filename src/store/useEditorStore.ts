@@ -1,4 +1,3 @@
-import { supabase } from "../lib/supabase";
 import { createStore } from "./store";
 
 export interface BaseLayer {
@@ -110,8 +109,9 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
     set({ isSaving: true });
 
     try {
+      const formData = new FormData();
       const processedLayers = await Promise.all(
-        layers.map(async (layer) => {
+        layers.map(async (layer, fileIndex) => {
           if (layer.type !== "image" || !layer.src?.startsWith("blob:")) {
             return layer;
           }
@@ -122,26 +122,13 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
             const imageBlob = await response.blob();
 
             // 임시 UUID
-            const fileName = `${crypto.randomUUID()}.png`;
-            const filePath = `images/${fileName}`;
+            const fileKey = `image_file_${fileIndex}`;
 
-            const { error: uploadError } = await supabase.storage
-              .from("cards")
-              .upload(filePath, imageBlob, {
-                contentType: "image/jpeg",
-              });
-            if (uploadError) {
-              throw uploadError;
-            }
-
-            // 업로드된 파일의 공개 url 가져오기
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("cards").getPublicUrl(filePath);
+            formData.append("files", imageBlob, fileKey);
 
             URL.revokeObjectURL(layer.src);
 
-            return { ...layer, src: publicUrl };
+            return { ...layer, src: fileKey };
           } catch (error) {
             console.error(`이미지 업로드 실패 (Layer ID: ${layer.id}):`, error);
             return layer;
@@ -149,19 +136,12 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
         }),
       );
 
-      // 공개 url이 적용된 데이터를 json으로 직렬화
-      const payload = JSON.stringify({ layers: processedLayers });
+      formData.append("data", JSON.stringify({ layers: processedLayers }));
 
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/cards`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: payload,
-        },
-      );
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/card`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error(`${response.status}`);
@@ -192,6 +172,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
       const data = await response.json();
 
       // 편집이 불가능하도록 설정
+      console.log(data.layers);
       set({
         layers: data.layers,
         isPreview: true,

@@ -1,10 +1,10 @@
 import cn from "classnames";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDrag } from "../hook/useDrag";
 import {
   useEditorStore,
   type BlendMode,
-  type ImageLayer,
+  type TextLayer,
 } from "../store/useEditorStore";
 import BoundingBox from "./BoundingBox";
 
@@ -23,26 +23,53 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
 
+  // stale한 값을 참조하지 않도록
+  const layerRef = useRef<TextLayer>(layer as TextLayer);
+  useLayoutEffect(() => {
+    layerRef.current = layer as TextLayer;
+  }, [layer]);
+
   useEffect(() => {
-    if (isEditing && textRef.current) {
-      textRef.current.focus();
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(textRef.current);
-      range.collapse(false); // 커서를 맨 끝으로
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+    const targetElement = textRef.current;
+    if (!targetElement || !isEditing || layer?.type !== "text") {
+      return;
     }
 
-    return () => {
-      if (layer?.type === "image") {
-        const imageLayer = layer as ImageLayer;
-        if (imageLayer.src.startsWith("blob")) {
-          URL.revokeObjectURL(imageLayer.src);
-        }
+    targetElement.innerHTML = layerRef.current.content;
+
+    targetElement.focus();
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(targetElement);
+    range.collapse(); // 커서를 맨 끝으로
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+
+    const handleNativeInput = () => {
+      const height = targetElement.offsetHeight;
+      const currentLayer = layerRef.current;
+
+      if (currentLayer) {
+        updateLayer(layerId, {
+          height: Math.max(layer.height, height),
+          content: targetElement.innerHTML,
+        });
       }
     };
-  }, [isEditing, layer]);
+
+    const handleNativeBlur = () => {
+      setIsEditing(false);
+    };
+
+    targetElement.addEventListener("input", handleNativeInput);
+    targetElement.addEventListener("blur", handleNativeBlur);
+
+    return () => {
+      targetElement.removeEventListener("input", handleNativeInput);
+      targetElement.removeEventListener("blur", handleNativeBlur);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditing, updateLayer, layerId]);
 
   if (!layer) {
     return null;
@@ -59,23 +86,6 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
 
     e.stopPropagation();
     setIsEditing(true);
-  };
-
-  const handleInput = () => {
-    if (textRef.current && isTextLayer) {
-      const height = textRef.current.offsetHeight;
-
-      updateLayer(layerId, {
-        height: Math.max(layer.height, height),
-      });
-    }
-  };
-
-  const handleBlur = () => {
-    setIsEditing(false);
-    if (textRef.current && isTextLayer) {
-      updateLayer(layerId, { content: textRef.current.innerText });
-    }
   };
 
   const currentBlendMode: BlendMode = isImageLayer ? layer.blendMode : "normal";
@@ -120,17 +130,16 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
           ref={textRef}
           contentEditable={isEditing}
           suppressContentEditableWarning={true}
-          onBlur={handleBlur}
-          onInput={handleInput}
           className={`w-full outline-none wrap-break-word ${!isEditing ? "pointer-events-none select-none" : ""}`}
           style={{
             fontSize: layer.fontSize,
             color: layer.color,
             fontWeight: layer.fontWeight,
           }}
-        >
-          {layer.content}
-        </div>
+          dangerouslySetInnerHTML={
+            isEditing ? undefined : { __html: layer.content }
+          }
+        />
       )}
       {isSelected && <BoundingBox layerId={layerId} />}
     </div>

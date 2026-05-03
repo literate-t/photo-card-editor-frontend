@@ -82,11 +82,18 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
       ),
     })),
   removeLayer: (id) =>
-    set((state) => ({
-      layers: state.layers.filter((layer) => layer.id !== id),
-      selectedLayerId:
-        state.selectedLayerId === id ? null : state.selectedLayerId,
-    })),
+    set((state) => {
+      const targetLayer = state.layers.find((l) => l.id === id);
+      if (targetLayer?.type === "image" && targetLayer.src.startsWith("blob")) {
+        URL.revokeObjectURL(targetLayer.src);
+      }
+
+      return {
+        layers: state.layers.filter((l) => l.id !== id),
+        selectedLayerId:
+          state.selectedLayerId === id ? null : state.selectedLayerId,
+      };
+    }),
   setSelectedLayer: (id) => set(() => ({ selectedLayerId: id })),
   togglePreview: () =>
     set((state) => ({

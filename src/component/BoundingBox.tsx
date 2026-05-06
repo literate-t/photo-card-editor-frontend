@@ -12,10 +12,6 @@ export default function BoundingBox({ layerId }: BoundingBoxProps) {
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId);
   const isSelected = selectedLayerId === layerId;
 
-  // if (!isSelected) {
-  //   return null;
-  // }
-
   const handles: {
     direction: HandleDirection;
     cursor: string;
@@ -69,10 +65,8 @@ export default function BoundingBox({ layerId }: BoundingBoxProps) {
       {handles.map((handle) => (
         <div
           key={handle.direction}
-          className={`absolute w-1.5 h-1.5 bg-gray-100 border border-gray-500 rounded-full ${handle.positionClass} ${handle.cursor} 
-          transition-opacity duration-200 ease-in-out ${
-            isSelected ? "opacity-100" : "opacity-0"
-          }`}
+          className={`absolute w-1.5 h-1.5 bg-gray-100 border border-gray-500 rounded-full transition-opacity duration-200 ${handle.positionClass} ${handle.cursor} 
+          ${isSelected ? "opacity-100" : "opacity-0"}`}
           onMouseDown={(e) => onResizeStart(e, handle.direction, handle.cursor)}
         />
       ))}

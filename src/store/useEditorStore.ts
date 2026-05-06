@@ -44,6 +44,7 @@ interface EditorState {
   cardBackgroundImage: string | null;
   layers: Layer[];
   selectedLayerId: string | null;
+  sideColor: string;
   isPreview: boolean;
   isSaving: boolean;
   isLoading: boolean;
@@ -54,6 +55,7 @@ interface EditorState {
   updateLayer: (id: string, updatedLayer: Partial<Layer>) => void;
   removeLayer: (id: string) => void;
   setSelectedLayer: (id: string | null) => void;
+  setSideColor: (color: string) => void;
   togglePreview: () => void;
   clearSelection: () => void;
   saveCard: () => Promise<string | null>;
@@ -72,7 +74,9 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
   isSaving: false,
   isLoading: false,
   isError: false,
+  sideColor: "#d1d5db",
 
+  setSideColor: (color: string) => set({ sideColor: color }),
   addLayer: (layer) => set((state) => ({ layers: [...state.layers, layer] })),
   updateLayer: (id, updatedLayer) =>
     set((state) => ({

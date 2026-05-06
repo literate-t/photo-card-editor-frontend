@@ -1,10 +1,12 @@
 import { useRef } from "react";
 import { useEditorStore } from "../store/useEditorStore";
+import BasicButton from "./BasicButton";
 
 export default function LayerToolbar() {
   const addLayer = useEditorStore((state) => state.addLayer);
   const layers = useEditorStore((state) => state.layers);
   const isPreview = useEditorStore((state) => state.isPreview);
+  const togglePreview = useEditorStore((state) => state.togglePreview);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddTextLayer = () => {
@@ -13,14 +15,14 @@ export default function LayerToolbar() {
       type: "text",
       x: 50,
       y: 50,
-      width: 200,
-      height: 100,
+      width: 100,
+      height: 50,
       rotation: 0,
       zIndex: layers.length + 1,
-      content: "<div>Layer Text</div>",
+      content: "<div>Text</div>",
       color: "#000000",
       fontWeight: "normal",
-      fontSize: "16px",
+      fontSize: "14px",
     });
   };
 
@@ -53,29 +55,39 @@ export default function LayerToolbar() {
   };
 
   if (isPreview) {
-    return null;
+    return (
+      <BasicButton
+        onClick={(e) => {
+          e.stopPropagation();
+          togglePreview();
+        }}
+        className="hover:bg-indigo-600"
+        text={isPreview ? "Edit mode" : "Preview"}
+      />
+    );
   }
 
   return (
-    <div className="flex gap-3">
-      <button
-        onClick={handleAddTextLayer}
-        className="px-4 py-2 font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50"
-      >
-        +텍스트
-      </button>
-      <button
+    <div className="flex items-center gap-3">
+      <BasicButton onClick={handleAddTextLayer} text="Add text" />
+      <BasicButton
         onClick={() => fileInputRef.current?.click()}
-        className="px-4 py-2 font-medium text-gray-700 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-5"
-      >
-        +이미지
-      </button>
+        text="Add image"
+      />
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleImageUpload}
         accept="image/jpeg, image/jpg"
         className="hidden"
+      />
+      <BasicButton
+        onClick={(e) => {
+          e.stopPropagation();
+          togglePreview();
+        }}
+        className="hover:bg-indigo-600"
+        text={isPreview ? "Edit mode" : "Preview"}
       />
     </div>
   );

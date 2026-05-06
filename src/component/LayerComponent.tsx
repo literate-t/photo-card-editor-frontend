@@ -19,7 +19,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId);
   const updateLayer = useEditorStore((state) => state.updateLayer);
   const isPreview = useEditorStore((state) => state.isPreview);
-  const { onDragStart, isDragging } = useDrag(layerId);
+  const { onDragStart } = useDrag(layerId);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
 
@@ -103,12 +103,14 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
         }
       }}
       onDoubleClick={handleDoubleClick}
-      className={cn("absolute border select-none", {
-        "transition-all duration-200": !isDragging.current,
-        "border-gray-500 cursor-grab": isSelected,
-        "border-transparent cursor-default": !isSelected,
-        "cursor-text": isEditing,
-      })}
+      className={cn(
+        "absolute border select-none transition-[border-color] duration-200",
+        {
+          "border-gray-500 cursor-grab": isSelected,
+          "border-gray-500/0 cursor-default": !isSelected,
+          "cursor-text": isEditing,
+        },
+      )}
       style={{
         transform: `translate(${layer.x}px, ${layer.y}px) rotate(${layer.rotation || 0}deg)`,
         width: layer.width,

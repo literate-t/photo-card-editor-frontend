@@ -1,6 +1,7 @@
 import cn from "classnames";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import useRafHandler from "../hook/useRafHandler";
+import { useEditorStore } from "../store/useEditorStore";
 
 interface Card3DContainerProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export default function Card3DContainer({
   height,
 }: Card3DContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sideColor = useEditorStore((state) => state.sideColor);
 
   const [rotation, setRotation] = useState<{ x: number; y: number }>({
     x: 0,
@@ -24,7 +26,7 @@ export default function Card3DContainer({
 
   const THICKNESS = 8; // 단위: px
   const HALF_THICKNESS = THICKNESS / 2;
-  const MAX_ROTATION_DEGREE = 20;
+  const MAX_ROTATION_DEGREE = 45;
 
   const updateMouseEffect = useCallback(
     (e: React.MouseEvent<HTMLDivElement>): void => {
@@ -68,14 +70,35 @@ export default function Card3DContainer({
 
   const handleMouseEnter = () => {
     // 순간 이동 틸팅되는 걸 방지
-    setTimeout(() => setIsHovered(true), 150);
+    setTimeout(() => setIsHovered(true), 300);
+    // setIsHovered(true);
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
     setRotation({ x: 0, y: 0 });
     setGlare({ angle: 0, opacity: 0 });
+    setIsHovered(false);
   };
+
+  const middleLayers = useMemo(() => {
+    const layerCount = Math.floor(THICKNESS / 2);
+    const stride = THICKNESS / (layerCount + 1); // 간격의 개수는 layer + 1
+
+    return Array.from({ length: layerCount }).map((_, i) => {
+      const zPos = -HALF_THICKNESS + stride * (i + 1);
+
+      return (
+        <div
+          key={`layer-${i}`}
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{
+            transform: `translateZ(${zPos}px)`,
+            backgroundColor: sideColor,
+          }}
+        />
+      );
+    });
+  }, [THICKNESS, HALF_THICKNESS, sideColor]);
 
   return (
     <div
@@ -91,19 +114,29 @@ export default function Card3DContainer({
     >
       {/* 3D 몸체 켄테이너(틸트 회전 담당) */}
       <div
-        className={cn("relative w-full h-full", {
+        className={cn("relative w-full h-full rounded-2xl", {
           "transition-transform duration-200 ease-out": !isHovered,
         })}
         style={{
           transformStyle: "preserve-3d",
           transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
+          willChange: isHovered ? "transform" : "auto",
         }}
       >
-        {/* 앞면: 앞으로 2px 밀어내기 */}
+        {/* 뒷면: 뒤로 4px */}
         <div
-          className="absolute inset-0 bg-white shadow-md overflow-hidden"
+          className="absolute inset-0 rounded-2xl bg-gray-400"
+          style={{
+            transform: `translateZ(-${HALF_THICKNESS}px) rotateY(180deg)`,
+          }}
+        />
+        {middleLayers}
+        {/* 앞면: 앞으로 4px */}
+        <div
+          className="absolute inset-0 rounded-2xl shadow-md overflow-hidden"
           style={{
             transform: `translateZ(${HALF_THICKNESS}px)`,
+            WebkitMaskImage: "-webkit-radial-gradient(white, black)",
           }}
         >
           {children}
@@ -117,53 +150,10 @@ export default function Card3DContainer({
             style={{
               backgroundImage: `linear-gradient(${glare.angle}deg, rgba(255, 255, 255, ${glare.opacity}), rgba(255, 255, 255, 0) 80%)`,
               transform: "translateZ(0)",
-              willChange: "opacity, background-image",
+              willChange: isHovered ? "opacity, background-image" : "auto",
             }}
           />
         </div>
-        {/* 뒷면: 뒤집어서 뒤로 2px 밀어내기 */}
-        <div
-          className="absolute inset-0 bg-gray-200"
-          style={{
-            transform: `rotateY(180deg) translateZ(${HALF_THICKNESS})`,
-          }}
-        />
-        {/* 위쪽 측면 */}
-        <div
-          className="absolute top-0 left-0 origin-top bg-gray-300 "
-          style={{
-            width: "100%",
-            height: `${THICKNESS}px`,
-            transform: `rotateX(90deg) translateY(-${HALF_THICKNESS}px)`,
-          }}
-        />
-        {/* 아래쪽 측면 */}
-        <div
-          className="absolute bottom-0 left-0 origin-bottom bg-gray-500"
-          style={{
-            width: "100%",
-            height: `${THICKNESS}px`,
-            transform: `rotateX(-90deg) translateY(${HALF_THICKNESS}px)`,
-          }}
-        />
-        {/* 왼쪽 측면 */}
-        <div
-          className="absolute top-0 left-0 origin-left bg-gray-300"
-          style={{
-            width: `${THICKNESS}px`,
-            height: "100%",
-            transform: `rotateY(-90deg) translateX(-${HALF_THICKNESS}px)`,
-          }}
-        />
-        {/* 오른쪽 측면 */}
-        <div
-          className="absolute top-0 right-0 origin-right bg-gray-500"
-          style={{
-            width: `${THICKNESS}px`,
-            height: "100%",
-            transform: `rotateY(90deg) translateX(${HALF_THICKNESS}px)`,
-          }}
-        />
       </div>
     </div>
   );

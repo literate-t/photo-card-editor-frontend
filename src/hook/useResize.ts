@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import type { HandleDirection } from "../component/BoundingBox";
 import { useEditorStore, type TextLayer } from "../store/useEditorStore";
 
 export default function useResize(layerId: string) {
   const updateLayer = useEditorStore((state) => state.updateLayer);
   const setSelectedLayer = useEditorStore((state) => state.setSelectedLayer);
+  const isResizing = useRef<boolean>(false);
   const layer = useEditorStore((state) =>
     state.layers.find((l) => l.id == layerId),
   );
@@ -31,7 +32,8 @@ export default function useResize(layerId: string) {
       const startWidth = layer.width;
       const startHeight = layer.height;
       const rotation = layer.rotation || 0;
-      const isResizing = true;
+      // const isResizing = true;
+      isResizing.current = true;
 
       // 최초 중심점
       const startCx = startLayerX + startWidth / 2;
@@ -45,7 +47,7 @@ export default function useResize(layerId: string) {
       document.body.classList.add(cursor);
 
       const handleMouseMove = (moveEvent: MouseEvent): void => {
-        if (!isResizing || !direction) {
+        if (!isResizing.current || !direction) {
           return;
         }
 
@@ -166,6 +168,7 @@ export default function useResize(layerId: string) {
       const onMouseUp = () => {
         window.removeEventListener("mousemove", handleMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
+        isResizing.current = false;
         document.body.classList.remove(cursor);
       };
 
@@ -175,5 +178,5 @@ export default function useResize(layerId: string) {
     [layer, updateLayer, setSelectedLayer, layerId],
   );
 
-  return { onResizeStart };
+  return { onResizeStart, isResizing };
 }

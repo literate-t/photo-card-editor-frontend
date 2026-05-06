@@ -53,5 +53,5 @@ export const useDrag = (layerId: string) => {
     [setSelectedLayer, layerId, updateLayer],
   );
 
-  return { onDragStart };
+  return { onDragStart, isDragging };
 };

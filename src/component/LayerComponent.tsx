@@ -19,7 +19,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
   const selectedLayerId = useEditorStore((state) => state.selectedLayerId);
   const updateLayer = useEditorStore((state) => state.updateLayer);
   const isPreview = useEditorStore((state) => state.isPreview);
-  const { onDragStart } = useDrag(layerId);
+  const { onDragStart, isDragging } = useDrag(layerId);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
 
@@ -103,8 +103,9 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
         }
       }}
       onDoubleClick={handleDoubleClick}
-      className={cn("absolute border-2 select-none", {
-        "border-blue-500 cursor-grab": isSelected,
+      className={cn("absolute border select-none", {
+        "transition-all duration-200": !isDragging.current,
+        "border-gray-500 cursor-grab": isSelected,
         "border-transparent cursor-default": !isSelected,
         "cursor-text": isEditing,
       })}
@@ -141,7 +142,7 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
           }
         />
       )}
-      {isSelected && <BoundingBox layerId={layerId} />}
+      <BoundingBox layerId={layerId} />
     </div>
   );
 }

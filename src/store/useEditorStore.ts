@@ -40,8 +40,6 @@ export type Layer = TextLayer | ImageLayer;
 
 interface EditorState {
   cardId: string | null;
-  cardBackgroundColor: string;
-  cardBackgroundImage: string | null;
   layers: Layer[];
   selectedLayerId: string | null;
   sideColor: string;
@@ -54,6 +52,7 @@ interface EditorState {
   addLayer: (layer: Layer) => void;
   updateLayer: (id: string, updatedLayer: Partial<Layer>) => void;
   removeLayer: (id: string) => void;
+  clearLayers: () => void;
   setSelectedLayer: (id: string | null) => void;
   setSideColor: (color: string) => void;
   togglePreview: () => void;
@@ -66,8 +65,6 @@ interface EditorState {
 export const useEditorStore = createStore<EditorState>((set, get) => ({
   // Initial state
   cardId: null,
-  cardBackgroundColor: "#fffff",
-  cardBackgroundImage: null,
   layers: [],
   selectedLayerId: null,
   isPreview: false,
@@ -97,6 +94,14 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
           state.selectedLayerId === id ? null : state.selectedLayerId,
       };
     }),
+  clearLayers: () => {
+    set({
+      layers: [],
+      selectedLayerId: null,
+      isPreview: false,
+      sideColor: "",
+    });
+  },
   setSelectedLayer: (id) => set(() => ({ selectedLayerId: id })),
   togglePreview: () =>
     set((state) => ({

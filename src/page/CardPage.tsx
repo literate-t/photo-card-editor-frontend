@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Card3DContainer from "../component/Card3DContainer";
 import LayerComponent from "../component/LayerComponent";
 import { useEditorStore } from "../store/useEditorStore";
@@ -8,12 +8,19 @@ export default function CardPage() {
   const { uuid } = useParams<{ uuid: string }>();
   const loadCard = useEditorStore((state) => state.loadCard);
   const layers = useEditorStore((state) => state.layers);
+  const clearLayers = useEditorStore((state) => state.clearLayers);
   const isLoading = useEditorStore((state) => state.isLoading);
   const isError = useEditorStore((state) => state.isError);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadCard(uuid as string);
   }, [loadCard, uuid]);
+
+  const handleStartFresh = () => {
+    clearLayers();
+    navigate("/");
+  };
 
   // error
   if (isError) {
@@ -55,9 +62,12 @@ export default function CardPage() {
           ))}
         </div>
       </Card3DContainer>
-      <Link to="/" className="text-gray-500 underline hover:text-gray-800">
+      <button
+        onClick={handleStartFresh}
+        className="mt-2 text-gray-500 underline hover:text-gray-200"
+      >
         Let's make some photo cards
-      </Link>
+      </button>
     </div>
   );
 }

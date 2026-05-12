@@ -4,6 +4,7 @@ import { useDrag } from "../hook/useDrag";
 import {
   useEditorStore,
   type BlendMode,
+  type ImageLayer,
   type TextLayer,
 } from "../store/useEditorStore";
 import BoundingBox from "./BoundingBox";
@@ -67,6 +68,10 @@ export default function LayerComponent({ layerId }: LayerComponentProps) {
     return () => {
       targetElement.removeEventListener("input", handleNativeInput);
       targetElement.removeEventListener("blur", handleNativeBlur);
+
+      if (isImageLayer) {
+        URL.revokeObjectURL((layer as ImageLayer).src);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditing, updateLayer, layerId]);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useEditorStore } from "../store/useEditorStore";
 import BasicButton from "./BasicButton";
 
@@ -6,14 +7,21 @@ export default function SaveButton() {
   const saveCard = useEditorStore((state) => state.saveCard);
   const isSaving = useEditorStore((state) => state.isSaving);
   const [url, setUrl] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSave = async () => {
     const uuid = await saveCard(); // 백엔드에서 내려주는 uuid(v7)
 
     if (uuid) {
-      setUrl(`${window.location.origin}/card/${uuid}`);
+      setUrl(`/card/${uuid}`);
     } else {
       alert("카드 저장 실패");
+    }
+  };
+
+  const handleUrlClick = () => {
+    if (url) {
+      navigate(url, { replace: true });
     }
   };
 
@@ -34,14 +42,19 @@ export default function SaveButton() {
       >
         <div className="overflow-hidden">
           <div className="font-light text-[12px] rounded select-all">
-            <a
+            <BasicButton
+              onClick={handleUrlClick}
+              text={url ? "Let's go" : ""}
+              className=" text-gray-300 hover:text-gray-700 hover:bg-amber-200 "
+            />
+            {/* <a
               href={url || "#"}
               target="_blank"
               rel="noreferrer noopener"
               className="px-2 py-1 font-light border-transparent rounded-xl text-gray-300 transition duration-200 hover:ring-1 hover:bg-amber-200 hover:text-gray-600"
             >
               {url}
-            </a>
+            </a> */}
           </div>
         </div>
       </div>

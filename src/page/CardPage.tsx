@@ -19,7 +19,7 @@ export default function CardPage() {
 
   const handleStartFresh = () => {
     clearLayers();
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   // error

@@ -135,8 +135,6 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
             formData.append("files", imageBlob, fileKey);
 
-            URL.revokeObjectURL(layer.src);
-
             return { ...layer, src: fileKey };
           } catch (error) {
             console.error(`이미지 업로드 실패 (Layer ID: ${layer.id}):`, error);
@@ -167,7 +165,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
     }
   },
   loadCard: async (uuid: string) => {
-    set({ isLoading: true, isError: false });
+    set({ isLoading: true, isError: false, layers: [] });
 
     try {
       const response = await fetch(
@@ -180,8 +178,6 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
       const data = await response.json();
 
-      // 편집이 불가능하도록 설정
-      console.log(data.layers);
       set({
         layers: data.layers,
         isPreview: true,

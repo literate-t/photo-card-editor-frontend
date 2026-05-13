@@ -6,6 +6,7 @@ import BasicButton from "./BasicButton";
 export default function SaveButton() {
   const saveCard = useEditorStore((state) => state.saveCard);
   const isSaving = useEditorStore((state) => state.isSaving);
+  const clearLayers = useEditorStore((state) => state.clearLayers);
   const [url, setUrl] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -21,6 +22,7 @@ export default function SaveButton() {
 
   const handleUrlClick = () => {
     if (url) {
+      clearLayers();
       navigate(url, { replace: true });
     }
   };

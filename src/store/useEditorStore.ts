@@ -144,7 +144,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
             formData.append("files", imageBlob, fileKey);
 
-            return { ...layer, sideColor, src: fileKey };
+            return { ...layer, src: fileKey };
           } catch (error) {
             console.error(`이미지 업로드 실패 (Layer ID: ${layer.id}):`, error);
             return layer;
@@ -152,7 +152,10 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
         }),
       );
 
-      formData.append("data", JSON.stringify({ layers: processedLayers }));
+      formData.append(
+        "data",
+        JSON.stringify({ layers: processedLayers, sideColor }),
+      );
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/card`, {
         method: "POST",
@@ -189,6 +192,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
       set({
         layers: data.layers,
+        sideColor: data.sideColor,
         isPreview: true,
         selectedLayerId: null,
       });

@@ -110,7 +110,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
     })),
   clearSelection: () => set({ selectedLayerId: null }),
   saveCard: async (): Promise<string | null> => {
-    const { layers } = get();
+    const { layers, sideColor } = get();
     if (layers.length === 0) {
       return null;
     }
@@ -135,7 +135,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
             formData.append("files", imageBlob, fileKey);
 
-            return { ...layer, src: fileKey };
+            return { ...layer, sideColor, src: fileKey };
           } catch (error) {
             console.error(`이미지 업로드 실패 (Layer ID: ${layer.id}):`, error);
             return layer;

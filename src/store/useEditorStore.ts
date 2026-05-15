@@ -61,6 +61,15 @@ interface EditorState {
   loadCard: (uuid: string) => Promise<void>;
 }
 
+interface SaveCardResponse {
+  uuid: string;
+}
+
+interface LoadCardResponse {
+  layers: Layer[];
+  sideColor: string;
+}
+
 // Zustand store
 export const useEditorStore = createStore<EditorState>((set, get) => ({
   // Initial state
@@ -154,7 +163,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
         throw new Error(`${response.status}`);
       }
 
-      const responseData = await response.json();
+      const responseData = (await response.json()) as SaveCardResponse;
 
       return responseData.uuid;
     } catch (error) {
@@ -176,7 +185,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
         throw new Error("카드 정보를 찾을 수 없습니다");
       }
 
-      const data = await response.json();
+      const data = (await response.json()) as LoadCardResponse;
 
       set({
         layers: data.layers,

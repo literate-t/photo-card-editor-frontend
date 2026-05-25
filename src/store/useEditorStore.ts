@@ -1,3 +1,4 @@
+import apiClient from "../lib/apiClient";
 import { createStore } from "./store";
 
 export interface BaseLayer {
@@ -157,18 +158,9 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
         JSON.stringify({ layers: processedLayers, sideColor }),
       );
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/card`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await apiClient.post<SaveCardResponse>("/api/card", formData);
 
-      if (!response.ok) {
-        throw new Error(`${response.status}`);
-      }
-
-      const responseData = (await response.json()) as SaveCardResponse;
-
-      return responseData.uuid;
+      return response.data.uuid;
     } catch (error) {
       console.error("카드 저장 프로세스 중 오류 발생:", error);
       return null;
@@ -180,15 +172,8 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
     set({ isLoading: true, isError: false, layers: [] });
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/card/${uuid}`,
-      );
-
-      if (!response.ok) {
-        throw new Error("카드 정보를 찾을 수 없습니다");
-      }
-
-      const data = (await response.json()) as LoadCardResponse;
+      const response = await apiClient.get<LoadCardResponse>(`/api/card/${uuid}`);
+      const data = response.data;
 
       set({
         layers: data.layers,

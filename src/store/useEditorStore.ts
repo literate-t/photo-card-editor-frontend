@@ -48,6 +48,7 @@ interface EditorState {
   isSaving: boolean;
   isLoading: boolean;
   isError: boolean;
+  cardSaveVersion: number;
 
   // actions
   addLayer: (layer: Layer) => void;
@@ -81,6 +82,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
   isSaving: false,
   isLoading: false,
   isError: false,
+  cardSaveVersion: 0,
   sideColor: "#d1d5db",
 
   setSideColor: (color: string) => set({ sideColor: color }),
@@ -160,6 +162,7 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
 
       const response = await apiClient.post<SaveCardResponse>("/api/card", formData);
 
+      set((state) => ({ cardSaveVersion: state.cardSaveVersion + 1 }));
       return response.data.uuid;
     } catch (error) {
       console.error("카드 저장 프로세스 중 오류 발생:", error);

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useEditorStore } from "../store/useEditorStore";
 import Card3DContainer from "./Card3DContainer";
+import CardListPanel from "./CardListPanel";
 import LayerComponent from "./LayerComponent";
 import LayerToolbar from "./LayerToolbar";
 import SaveButton from "./SaveButton";
@@ -58,30 +59,33 @@ export default function EditorCanvas() {
   }, [selectedLayerId, isPreview, removeLayer]);
 
   return (
-    <div
-      className="flex flex-col items-center justify-center w-full h-screen bg-[#2a2b2d]"
-      onMouseDown={handleBackgroundClick}
-    >
-      {/* 컨트롤 패널 */}
-      <LayerToolbar />
-      {/* 3D 캔버스 영역 */}
-      <div className="mt-2">
-        {isPreview ? (
-          <Card3DContainer width={400} height={600}>
-            {Layers}
-          </Card3DContainer>
-        ) : (
-          <div className="flex items-start gap-x-0.5">
-            <div className="w-100 h-150">{Layers}</div>
-          </div>
-        )}
-      </div>
+    <div className="flex h-screen w-full bg-[#2a2b2d]">
       <div
-        className={`mt-1 transition-all duration-300 ease-in-out overflow-hidden ${isPreview ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        className="flex-1 flex flex-col items-center justify-center"
+        onMouseDown={handleBackgroundClick}
       >
-        <SideColorPalette />
+        {/* 컨트롤 패널 */}
+        <LayerToolbar />
+        {/* 3D 캔버스 영역 */}
+        <div className="mt-2">
+          {isPreview ? (
+            <Card3DContainer width={400} height={600}>
+              {Layers}
+            </Card3DContainer>
+          ) : (
+            <div className="flex items-start gap-x-0.5">
+              <div className="w-100 h-150">{Layers}</div>
+            </div>
+          )}
+        </div>
+        <div
+          className={`mt-1 transition-all duration-300 ease-in-out overflow-hidden ${isPreview ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+        >
+          <SideColorPalette />
+        </div>
+        <div className="mt-3">{!isPreview && <SaveButton />}</div>
       </div>
-      <div className="mt-3">{!isPreview && <SaveButton />}</div>
+      <CardListPanel />
     </div>
   );
 }

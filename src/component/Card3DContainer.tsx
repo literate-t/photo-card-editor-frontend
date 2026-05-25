@@ -7,15 +7,18 @@ interface Card3DContainerProps {
   children: React.ReactNode;
   width: number;
   height: number;
+  sideColor?: string;
 }
 
 export default function Card3DContainer({
   children,
   width,
   height,
+  sideColor: sideColorProp,
 }: Card3DContainerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sideColor = useEditorStore((state) => state.sideColor);
+  const storeSideColor = useEditorStore((state) => state.sideColor);
+  const sideColor = sideColorProp ?? storeSideColor;
 
   const [rotation, setRotation] = useState<{ x: number; y: number }>({
     x: 0,

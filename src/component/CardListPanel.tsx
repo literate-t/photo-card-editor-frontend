@@ -132,7 +132,7 @@ export default function CardListPanel() {
               height={300}
               sideColor={preview.sideColor}
             >
-              <StaticCardLayers layers={preview.data.layers} />
+              <StaticCardLayers layers={preview.data.layers} scale={0.5} />
             </Card3DContainer>
           )}
         </div>

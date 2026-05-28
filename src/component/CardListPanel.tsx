@@ -59,7 +59,13 @@ export default function CardListPanel() {
     }
 
     const rect = e.currentTarget.getBoundingClientRect();
-    setPreview({ uuid: card.uuid, y: rect.top, sideColor: card.sideColor, data: null, loading: true });
+    setPreview({
+      uuid: card.uuid,
+      y: rect.top,
+      sideColor: card.sideColor,
+      data: null,
+      loading: true,
+    });
 
     fetchTimerRef.current = setTimeout(() => {
       apiClient
@@ -80,10 +86,7 @@ export default function CardListPanel() {
   };
 
   const previewTop = preview
-    ? Math.min(
-        Math.max(preview.y, 8),
-        window.innerHeight - 316,
-      )
+    ? Math.min(Math.max(preview.y, 8), window.innerHeight - 316)
     : 0;
 
   return (
@@ -127,13 +130,9 @@ export default function CardListPanel() {
               <div className="w-6 h-6 border-2 border-zinc-500 border-t-zinc-200 rounded-full animate-spin" />
             </div>
           ) : (
-            <Card3DContainer
-              width={200}
-              height={300}
-              sideColor={preview.sideColor}
-            >
+            <div className="w-50 h-75">
               <StaticCardLayers layers={preview.data.layers} scale={0.5} />
-            </Card3DContainer>
+            </div>
           )}
         </div>
       )}

@@ -14,6 +14,7 @@ export default function SaveButton() {
     const uuid = await saveCard(); // 백엔드에서 내려주는 uuid(v7)
 
     if (uuid) {
+      clearLayers();
       setUrl(`/card/${uuid}`);
     } else {
       alert("카드 저장 실패");
@@ -22,7 +23,6 @@ export default function SaveButton() {
 
   const handleUrlClick = () => {
     if (url) {
-      clearLayers();
       navigate(url, { replace: true });
     }
   };

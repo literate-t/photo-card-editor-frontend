@@ -107,11 +107,18 @@ export const useEditorStore = createStore<EditorState>((set, get) => ({
       };
     }),
   clearLayers: () => {
+    const { layers } = get();
+    for (const layer of layers) {
+      if (layer.type === "image" && layer.src.startsWith("blob:")) {
+        URL.revokeObjectURL(layer.src);
+      }
+    }
     set({
       layers: [],
       selectedLayerId: null,
       isPreview: false,
-      sideColor: "",
+      sideColor: "#d1d5db",
+      cardId: null,
     });
   },
   setSelectedLayer: (id) => set(() => ({ selectedLayerId: id })),

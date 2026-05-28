@@ -98,9 +98,10 @@ export default function CardListPanel() {
           {cards.map((card, i) => (
             <div
               key={card.uuid}
-              className="px-4 py-3 cursor-default hover:bg-[#2e2f31] border-b border-zinc-800"
+              className="px-4 py-3 cursor-pointer hover:bg-[#2e2f31] border-b border-zinc-800"
               onMouseEnter={(e) => handleMouseEnterItem(card, e)}
               onMouseLeave={startLeaveTimer}
+              onClick={() => window.open(`/card/${card.uuid}`, "_blank")}
             >
               <p className="text-zinc-200 text-sm font-medium">
                 #{cards.length - i}

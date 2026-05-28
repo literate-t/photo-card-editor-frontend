@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import apiClient from "../lib/apiClient";
 import type { Layer } from "../store/useEditorStore";
 import { useEditorStore } from "../store/useEditorStore";
-import Card3DContainer from "./Card3DContainer";
 import { StaticCardLayers } from "./StaticCardLayers";
 
 interface CardListItem {

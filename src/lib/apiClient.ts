@@ -1,5 +1,5 @@
+import type { AxiosError, InternalAxiosRequestConfig } from "axios";
 import axios from "axios";
-import type { InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "../store/useAuthStore";
 
 interface RetryConfig extends InternalAxiosRequestConfig {
@@ -23,8 +23,8 @@ let refreshingPromise: Promise<string> | null = null;
 
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: { config: RetryConfig; response?: { status: number } }) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryConfig;
     const isRefreshRequest = originalRequest.url?.includes("/auth/refresh");
 
     if (

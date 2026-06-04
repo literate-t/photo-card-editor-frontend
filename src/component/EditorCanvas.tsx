@@ -4,6 +4,7 @@ import Card3DContainer from "./Card3DContainer";
 import CardListPanel from "./CardListPanel";
 import LayerComponent from "./LayerComponent";
 import LayerToolbar from "./LayerToolbar";
+import LogoutButton from "./LogoutButton";
 import SaveButton from "./SaveButton";
 import SideColorPalette from "./SideColorPalette";
 
@@ -59,7 +60,11 @@ export default function EditorCanvas() {
   }, [selectedLayerId, isPreview, removeLayer]);
 
   return (
-    <div className="flex h-screen w-full bg-[#2a2b2d]">
+    <div className="relative flex h-screen w-full bg-[#2a2b2d]">
+      {/* 우상단(카드 리스트 패널 왼쪽 옆) 로그아웃 버튼 */}
+      <div className="absolute top-3 right-64 z-40">
+        <LogoutButton />
+      </div>
       <div
         className="flex-1 flex flex-col items-center justify-center"
         onMouseDown={handleBackgroundClick}

@@ -152,7 +152,6 @@ export default function Card3DContainer({
             )}
             style={{
               backgroundImage: `linear-gradient(${glare.angle}deg, rgba(255, 255, 255, ${glare.opacity}), rgba(255, 255, 255, 0) 80%)`,
-              transform: "translateZ(0)",
               willChange: isHovered ? "opacity, background-image" : "auto",
             }}
           />
